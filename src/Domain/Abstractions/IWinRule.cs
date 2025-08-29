@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Bingo.src.Domain.Entities;
 
 namespace Bingo.src.Domain.Abstractions
 {
-    internal interface IWinRule
+    public interface IWinRule
     {
+        bool IsWinning(BingoCard card);
     }
 }

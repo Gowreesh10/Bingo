@@ -1,12 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Bingo.src.Domain.Entities;
 
 namespace Bingo.src.Domain.Abstractions
 {
-    internal interface IMatchRepository
+    public interface IMatchRepository
     {
+        void SaveMatch(Match match);
+
+        Match? GetMatchById(Guid id);
+
+        void UpdateMatch(Match match);
+
+        void DeleteMatch(Guid id);
+
+        IEnumerable<Match> GetAllMatches();
     }
 }

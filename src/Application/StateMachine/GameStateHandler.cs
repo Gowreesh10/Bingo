@@ -1,12 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace Bingo.src.Application.StateMachine
 {
-    internal class GameStateHandler
+    public class GameStateHandler
     {
+        private IGameState _currentState;
+
+        public GameStateHandler()
+        {
+            _currentState = new LobbyState(); 
+            _currentState.Enter();
+        }
+
+        public string CurrentStateName => _currentState.Name;
+
+        public void MoveNext()
+        {
+            _currentState = _currentState.Next();
+            _currentState.Enter();
+        }
+
+        public void ExecuteCurrent() => _currentState.Execute();
     }
 }

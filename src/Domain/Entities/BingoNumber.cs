@@ -10,7 +10,7 @@ namespace Bingo.src.Domain.Entities
 
         public BingoNumber(int value)
         {
-            if (value < 1 || value > 75)
+            if (value < 0 || value > 75)
                 throw new ArgumentOutOfRangeException(nameof(value), "Bingo number must be between 1 and 75.");
 
             Value = value;

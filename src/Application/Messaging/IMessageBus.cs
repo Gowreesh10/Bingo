@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace Bingo.src.Application.Messaging
 {
-    internal interface IMessageBus
+    public interface IMessageBus
     {
+        void Subscribe<TEvent>(Action<TEvent> handler);
+
+        void Unsubscribe<TEvent>(Action<TEvent> handler);
+
+        void Publish<TEvent>(TEvent eventMessage);
     }
 }

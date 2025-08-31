@@ -1,6 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 using Bingo.src.Domain.Entities;
+using Bingo.src.Domain.Services;
+using Bingo.src.Infrastructure.Persistence;
+using Bingo.src.Application.StateMachine;
 
 namespace Bingo
 {
@@ -8,65 +11,92 @@ namespace Bingo
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("🎉 Bingo Game Simulation 🎉\n");
+            Console.WriteLine("Bingo Game (State Machine Version)\n");
 
-            // Step 1: Create numbers for Bingo cards (5x5 example)
-            int[,] numbers1 = new int[5, 5]
+            // Initialize JSON repository
+            var repo = new JSONMatchRepository("matches.json");
+
+            // Resume unfinished match or create new
+            Match? match = repo.GetAllMatches().FirstOrDefault(m => m.State == MatchState.InProgress);
+
+            if (match == null)
             {
-                { 1, 16, 31, 46, 61 },
-                { 2, 17, 32, 47, 62 },
-                { 3, 18, 33, 48, 63 },
-                { 4, 19, 34, 49, 64 },
-                { 5, 20, 35, 50, 65 }
-            };
+                Console.WriteLine("No ongoing match found. Creating a new match...\n");
+                Console.WriteLine("Enter player names separated by commas (e.g., Alice,Bob):");
+                string? input = Console.ReadLine();
+                var playerNames = (input ?? "Alice,Bob")
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(n => n.Trim())
+                    .ToList();
 
-            int[,] numbers2 = new int[5, 5]
-            {
-                { 10, 25, 40, 55, 70 },
-                { 11, 26, 41, 56, 71 },
-                { 12, 27, 42, 57, 72 },
-                { 13, 28, 43, 58, 73 },
-                { 14, 29, 44, 59, 74 }
-            };
-
-            // Step 2: Create Bingo cards
-            BingoCard card1 = new BingoCard(numbers1);
-            BingoCard card2 = new BingoCard(numbers2);
-
-            // Step 3: Create players and assign cards
-            Player p1 = new Player("Alice");
-            p1.AddCard(card1);
-
-            Player p2 = new Player("Bob");
-            p2.AddCard(card2);
-
-            // Step 4: Create a Match with a pool of numbers
-            var drawNumbers = new List<int>() { 1, 17, 32, 47, 62, 29, 44, 59, 74 };
-            Match match = new Match(drawNumbers);
-
-            match.AddPlayer(p1);
-            match.AddPlayer(p2);
-
-            match.Start();
-            Console.WriteLine("Match started!\n");
-
-            // Step 5: Draw numbers and mark cards
-            int? drawn;
-            while ((drawn = match.DrawNextNumber()) != null)
-            {
-                Console.WriteLine($"Number drawn: {drawn}");
-
-                foreach (var player in match.Players)
+                var generator = new CardGenerator();
+                match = new Match(new NumberDrawer());
+                foreach (var name in playerNames)
                 {
-                    foreach (var card in player.Cards)
-                    {
-                        card.MarkNumber(drawn.Value);
-                    }
+                    var card = generator.Generate();
+                    var player = new Player(name);
+                    player.AddCard(card);
+                    match.AddPlayer(player);
                 }
+
+                match.Start();
+                repo.SaveMatch(match);
+
+                // Print initial cards for new match
+                Console.WriteLine("\nInitial cards:");
+                foreach (var player in match.Players)
+                    foreach (var card in player.Cards)
+                        PrintCard(card, player.Name);
+            }
+            else
+            {
+                Console.WriteLine($"Resuming previous match (ID: {match.Id}) with players:");
+                foreach (var player in match.Players)
+                    Console.WriteLine($"- {player.Name}");
+
+                // Print current cards for resumed match
+                Console.WriteLine("\nCurrent state of cards:");
+                foreach (var player in match.Players)
+                    foreach (var card in player.Cards)
+                        PrintCard(card, player.Name);
             }
 
-            match.End();
+            var gameStateHandler = new GameStateHandler(match, repo);
+
+            // Main game loop
+            while (match.State != MatchState.Finished)
+            {
+                // Draw number, mark cards, print updated cards
+                gameStateHandler.ExecuteCurrent();
+
+                // Advance to next state (WinCheck or Result)
+                gameStateHandler.MoveNext();
+            }
+
             Console.WriteLine("\nMatch ended!");
+        }
+
+        public static void PrintCard(BingoCard card, string playerName)
+        {
+            Console.WriteLine($"\n{playerName}'s Card:");
+            for (int r = 0; r < 5; r++)
+            {
+                for (int c = 0; c < 5; c++)
+                {
+                    var num = card.GetNumber(r, c);
+                    if (num == null)
+                        Console.Write("FREE ");
+                    else if (num.IsMarked)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.Write($"{num.Value,2}* ");
+                        Console.ResetColor();
+                    }
+                    else
+                        Console.Write($"{num.Value,2}  ");
+                }
+                Console.WriteLine();
+            }
         }
     }
 }

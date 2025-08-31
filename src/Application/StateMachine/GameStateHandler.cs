@@ -1,13 +1,15 @@
-﻿
+﻿using Bingo.src.Domain.Entities;
+using Bingo.src.Infrastructure.Persistence;
+
 namespace Bingo.src.Application.StateMachine
 {
     public class GameStateHandler
     {
         private IGameState _currentState;
 
-        public GameStateHandler()
+        public GameStateHandler(Match match, JSONMatchRepository repo)
         {
-            _currentState = new LobbyState(); 
+            _currentState = new LobbyState(match, repo); // pass dependencies to first state
             _currentState.Enter();
         }
 

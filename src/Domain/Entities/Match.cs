@@ -1,23 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Bingo.src.Domain.Services;
 
 namespace Bingo.src.Domain.Entities
 {
     public class Match
     {
-        public Guid Id { get; }
-        public List<Player> Players { get; }
-        public Queue<int> DrawPool { get; }
-        public MatchState State { get; private set; }
+        public Guid Id { get; set; }  // public setter for JSON
+        public List<Player> Players { get; set; } = new List<Player>();
+        public MatchState State { get; set; }
 
-        public Match(IEnumerable<int> drawNumbers)
+        private NumberDrawer _drawer;
+
+        // Parameterless constructor for JSON deserialization
+        public Match()
         {
+            _drawer = new NumberDrawer(); // recreate drawer when loading from JSON
+        }
+
+        // Constructor for new matches
+        public Match(NumberDrawer drawer)
+        {
+            _drawer = drawer ?? throw new ArgumentNullException(nameof(drawer));
             Id = Guid.NewGuid();
             Players = new List<Player>();
-            DrawPool = new Queue<int>(drawNumbers);
             State = MatchState.Waiting;
         }
 
@@ -26,29 +32,30 @@ namespace Bingo.src.Domain.Entities
             if (State != MatchState.Waiting)
                 throw new InvalidOperationException("Cannot add players after match has started.");
 
-            Players.Add(player);
+            Players.Add(player ?? throw new ArgumentNullException(nameof(player)));
         }
 
         public int? DrawNextNumber()
         {
-            if (DrawPool.Count == 0)
-                return null;
+            if (State != MatchState.InProgress)
+                throw new InvalidOperationException("Match is not in progress.");
 
-            return DrawPool.Dequeue();
+            return _drawer.Draw();
         }
+
+        public bool HasNumbersLeft() => _drawer.HasNumbersLeft();
 
         public void Start()
         {
             if (State != MatchState.Waiting)
                 throw new InvalidOperationException("Match already started or finished.");
+            if (Players.Count == 0)
+                throw new InvalidOperationException("Cannot start match without players.");
 
             State = MatchState.InProgress;
         }
 
-        public void End()
-        {
-            State = MatchState.Finished;
-        }
+        public void End() => State = MatchState.Finished;
     }
 
     public enum MatchState

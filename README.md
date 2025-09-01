@@ -57,8 +57,9 @@ Bingo/
 │   │   └── ResultState.cs       # Game results
 │   ├── Infrastructure/          # Data persistence
 │   │   └── JsonMatchRepository.cs
-│   ├── CardGeneratorTests.cs    # Unit tests
-│   ├── WinEvaluatorTests.cs     # Unit tests
+│   ├── tests                    # Unit tests
+│   │   ├── CardGeneratorTests.cs
+│   │   └── WinEvaluatorTests.cs     
 │   └── Program.cs               # Server entry point
 ├── Bingo.Client/                # Client application
 │   ├── Program.cs               # Client entry point

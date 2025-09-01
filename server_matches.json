@@ -1,0 +1,44 @@
+[
+  {
+    "Id": "439ff68d-e39b-4d2e-a994-77b294cbf13d",
+    "Players": [
+      {
+        "Id": "ceb07a05-5ec5-427f-abde-3364e7e791d5",
+        "Name": "Alice",
+        "Cards": []
+      },
+      {
+        "Id": "6dfb9269-1217-4f28-9337-1c5e4b7088ab",
+        "Name": "Bob",
+        "Cards": []
+      }
+    ],
+    "State": 1
+  },
+  {
+    "Id": "08f326bf-cf98-480d-beb2-694a7eca74b6",
+    "Players": [
+      {
+        "Id": "4ad1453c-6c13-4070-8c63-dccf8ac34f2c",
+        "Name": "Alice",
+        "Cards": [
+          {
+            "Rows": 5,
+            "Columns": 5
+          }
+        ]
+      },
+      {
+        "Id": "4199b8f0-9197-462b-92e4-f5d85ae353be",
+        "Name": "Bob",
+        "Cards": [
+          {
+            "Rows": 5,
+            "Columns": 5
+          }
+        ]
+      }
+    ],
+    "State": 2
+  }
+]
